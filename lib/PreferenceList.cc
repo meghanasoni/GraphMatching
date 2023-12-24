@@ -82,8 +82,6 @@ bool PreferenceList::is_tied(RankType rank) const {
     return (ties_.find(rank) != ties_.end());
 }
 
-// Return an enum value which denotes the preference of a2 over a1
-// in the preference list
 PreferenceOrderT PreferenceList::prefers(VertexPtr a1, VertexPtr a2) { 
   auto a1_rank = (RankType)find_index(a1);
   auto a2_rank = (RankType)find_index(a2);
@@ -96,6 +94,33 @@ PreferenceOrderT PreferenceList::prefers(VertexPtr a1, VertexPtr a2) {
   else {
     return cWorse;
   }
+}
+
+PreferenceList PreferenceList::get_prefS() const {
+    PreferenceList prefS;
+    for (auto i = this->cbegin(), e = this->cend(); i != e; ++i) {
+        if (i->vertex != nullptr) {
+            prefS.emplace_back(i->vertex);
+        } else {
+            auto index = std::distance(i, this->cbegin());
+            auto tied_list = this->get_ties(index);
+            for(auto j = tied_list.begin(), end = tied_list.end(); j != end; ++j) {
+                prefS.emplace_back(j->vertex);
+            }
+        }
+    }
+    return prefS;
+}
+
+PreferenceList PreferenceList::get_prefSC() const {
+    PreferenceList prefSC;
+    PreferenceList prefS = this->get_prefS();
+    for (auto i = prefS.cbegin(), e = prefS.cend(); i != e; ++i) {
+        if (i->vertex->get_lower_quota() > 0) {
+            prefSC.emplace_back(i->vertex);
+        }
+    }
+    return prefSC;
 }
 
 std::ostream& operator<<(std::ostream& out, const PreferenceList& pl) {
